@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Bamba — Translation Platform</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#fff;--bg2:#f7f6f3;--bg3:#f0efe9;
+  --text:#1a1a1a;--text2:#666;--text3:#999;
+  --border:#e0ddd5;--border2:#c8c5bc;
+  --pbg:#EEEDFE;--pmid:#AFA9EC;--p:#3C3489;
+  --tbg:#E1F5EE;--t:#085041;
+  --abg:#FAEEDA;--a:#633806;
+  --rbg:#FCEBEB;--r:#791F1F;
+  --bbg:#E6F1FB;--b:#0C447C;
+  --gbg:#EAF3DE;--g:#27500A;
+  --rad:8px;--radl:12px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg2);color:var(--text);font-size:14px;line-height:1.6}
+/* Layout */
+.app{display:grid;grid-template-columns:230px 1fr;min-height:100vh}
+.sidebar{background:var(--bg);border-right:0.5px solid var(--border);padding:1.25rem 1rem;display:flex;flex-direction:column;gap:2px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.main{padding:1.5rem;min-height:100vh;overflow-y:auto}
+/* Sidebar */
+.app-name{font-size:15px;font-weight:600;margin-bottom:2px}
+.app-sub{font-size:11px;color:var(--text3);margin-bottom:1rem}
+.slabel{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;padding:8px 6px 4px}
+.nav{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:var(--rad);cursor:pointer;color:var(--text2);font-size:13px;transition:all .15s}
+.nav:hover{background:var(--bg2);color:var(--text)}
+.nav.on{background:var(--pbg);color:var(--p);font-weight:500}
+.nav i{font-size:13px;width:18px;text-align:center;font-style:normal;flex-shrink:0}
+.qi{display:flex;align-items:center;justify-content:space-between;padding:6px 10px 6px 30px;border-radius:var(--rad);cursor:pointer;color:var(--text2);font-size:12px;transition:all .15s}
+.qi:hover{background:var(--bg2)}.qi.on{background:var(--pbg);color:var(--p);font-weight:500}
+.qc{font-size:10px;opacity:.6}
+.add-qbtn{margin-top:4px;width:100%;padding:6px 10px 6px 30px;font-size:12px;border:0.5px dashed var(--border2);border-radius:var(--rad);background:transparent;color:var(--text3);cursor:pointer;font-family:inherit;text-align:left}
+.add-qbtn:hover{background:var(--bg2);color:var(--text2)}
+.sb-bot{margin-top:auto;padding-top:1rem;border-top:0.5px solid var(--border)}
+select.usel{width:100%;padding:6px 8px;font-size:13px;border:0.5px solid var(--border);border-radius:var(--rad);background:var(--bg);color:var(--text);cursor:pointer;font-family:inherit}
+/* Pages */
+.page{display:none}.page.on{display:block}
+/* Buttons */
+.btn{padding:7px 14px;font-size:12px;border:0.5px solid var(--border2);border-radius:var(--rad);cursor:pointer;background:var(--bg);color:var(--text);transition:all .15s;font-family:inherit;white-space:nowrap}
+.btn:hover{background:var(--bg2)}.btn:active{transform:scale(.98)}
+.btn-p{background:var(--pbg);border-color:var(--pmid);color:var(--p)}.btn-p:hover{background:#CECBF6}
+.btn-a{background:var(--abg);border-color:#EF9F27;color:var(--a)}.btn-a:hover{background:#FAC775}
+.btn-g{background:var(--gbg);border-color:#97C459;color:var(--g)}.btn-g:hover{background:#C0DD97}
+.btn-r{background:var(--rbg);border-color:#F09595;color:var(--r)}.btn-r:hover{background:#F7C1C1}
+.btn-b{background:var(--bbg);border-color:#85B7EB;color:var(--b)}.btn-b:hover{background:#B5D4F4}
+/* Badges */
+.badge{display:inline-block;font-size:11px;padding:2px 9px;border-radius:10px;font-weight:500;white-space:nowrap}
+.b-u{background:var(--rbg);color:var(--r)}.b-t{background:var(--bbg);color:var(--b)}.b-p{background:var(--abg);color:var(--a)}.b-v{background:var(--gbg);color:var(--g)}
+/* Inputs */
+textarea,input[type=text],input[type=password]{width:100%;font-size:13px;padding:8px 12px;border:0.5px solid var(--border);border-radius:var(--rad);background:var(--bg2);color:var(--text);font-family:inherit;transition:border-color .15s}
+textarea{resize:vertical;line-height:1.7}
+textarea:focus,input:focus{outline:none;border-color:var(--pmid);background:var(--bg)}
+.lbl{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.05em;text-transform:uppercase;margin-bottom:5px;display:block}
+/* Spinner */
+.spin{width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--pmid);border-radius:50%;animation:sp .7s linear infinite;display:inline-block;vertical-align:middle;flex-shrink:0}
+@keyframes sp{to{transform:rotate(360deg)}}
+/* Toast */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--text);color:#fff;padding:10px 16px;border-radius:var(--rad);font-size:13px;opacity:0;transition:opacity .3s;z-index:300;pointer-events:none}
+.toast.on{opacity:1}
+/* Modal */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center}
+.modal-bg.on{display:flex}
+.modal{background:var(--bg);border-radius:var(--radl);padding:1.5rem;width:360px;border:0.5px solid var(--border)}
+.modal h3{font-size:15px;font-weight:600;margin-bottom:12px}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+/* Cards */
+.card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radl);padding:1.25rem;margin-bottom:1rem}
+/* Config panel */
+.cpanel{background:var(--abg);border:0.5px solid #EF9F27;border-radius:var(--radl);padding:14px;margin-bottom:1.25rem}
+.cpanel-title{font-size:13px;font-weight:600;color:var(--a);margin-bottom:8px}
+.cpanel input{margin:6px 0 10px}
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1.25rem}
+.stat{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rad);padding:10px 12px;text-align:center}
+.stat-n{font-size:20px;font-weight:600}.stat-l{font-size:11px;color:var(--text3);margin-top:1px}
+.s-u .stat-n{color:var(--r)}.s-t .stat-n{color:var(--b)}.s-p .stat-n{color:var(--a)}.s-v .stat-n{color:var(--g)}
+/* Filters */
+.filters{display:flex;gap:6px;margin-bottom:1rem;flex-wrap:wrap}
+.pill{padding:5px 13px;font-size:12px;border:0.5px solid var(--border);border-radius:20px;cursor:pointer;background:var(--bg);color:var(--text2);transition:all .15s}
+.pill:hover{background:var(--bg2)}
+.pill.f-all.on{background:var(--bg3);border-color:var(--border2);color:var(--text);font-weight:500}
+.pill.f-u.on{background:var(--rbg);border-color:#F09595;color:var(--r);font-weight:500}
+.pill.f-t.on{background:var(--bbg);border-color:#85B7EB;color:var(--b);font-weight:500}
+.pill.f-p.on{background:var(--abg);border-color:#EF9F27;color:var(--a);font-weight:500}
+.pill.f-v.on{background:var(--gbg);border-color:#97C459;color:var(--g);font-weight:500}
+/* Verse cards */
+.vc{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radl);margin-bottom:8px;overflow:hidden;transition:border-color .15s}
+.vc:hover{border-color:var(--border2)}
+.vc-head{display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;user-select:none}
+.v-num{font-size:11px;color:var(--text3);min-width:22px;font-weight:500}
+.v-prev{font-size:13px;font-weight:500;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:340px}
+.chev{font-size:11px;color:var(--text3);transition:transform .2s;flex-shrink:0}
+.vc.open .chev{transform:rotate(180deg)}
+.vbody{padding:0 14px 14px;border-top:0.5px solid var(--border)}
+.sblock{margin:10px 0}
+.ar-ta{direction:rtl;text-align:right;font-family:'Times New Roman',serif;font-size:16px;min-height:60px}
+.ai-box{background:var(--pbg);border:0.5px solid var(--pmid);border-radius:var(--rad);padding:10px 12px;margin-bottom:8px}
+.ai-lbl{font-size:10px;font-weight:600;color:var(--p);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px}
+.ai-text{font-size:13px;color:var(--p);line-height:1.7}
+.arow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.asel{font-size:12px;border:0.5px solid var(--border);border-radius:var(--rad);padding:5px 9px;background:var(--bg2);color:var(--text);cursor:pointer;font-family:inherit}
+.cmts{border-top:0.5px solid var(--border);padding-top:10px;margin-top:10px}
+.cmt{display:flex;gap:8px;margin-bottom:10px}
+.av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0}
+.av-f{background:var(--pbg);color:var(--p)}.av-z{background:var(--tbg);color:var(--t)}.av-s{background:var(--abg);color:var(--a)}
+.cb{flex:1}.cm{font-size:11px;color:var(--text3)}.ca{font-weight:600;color:var(--text);font-size:12px}.ct{font-size:13px;color:var(--text2);margin-top:1px;line-height:1.5}
+.add-cmt{display:flex;gap:6px;margin-top:8px;align-items:center}
+.add-cmt input{flex:1;font-size:12px;padding:7px 10px}
+.add-v-card{background:var(--bg2);border:0.5px dashed var(--border2);border-radius:var(--radl);padding:14px;margin-top:8px}
+/* Reader */
+.reader-mode-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1.25rem;align-items:center}
+.rv-2col{display:grid;grid-template-columns:1fr 1fr;gap:0;border-bottom:0.5px solid var(--border);padding:14px 0;direction:rtl}
+.rv-2col:first-of-type{border-top:0.5px solid var(--border)}
+.rv-arabic{direction:rtl;text-align:right;font-family:'Times New Roman',serif;font-size:16px;line-height:2;padding-left:16px;border-left:0.5px solid var(--border);color:var(--text)}
+.rv-trans{direction:ltr;text-align:left;padding-right:16px;font-size:14px;line-height:1.8;color:var(--text2);font-style:italic}
+.rv-num{font-size:10px;color:var(--text3);margin-bottom:3px;font-style:normal}
+.rv-single{border-bottom:0.5px solid var(--border);padding:12px 0;font-size:15px;line-height:1.9}
+/* Mode pills */
+.mpill{padding:5px 12px;font-size:12px;border:0.5px solid var(--border);border-radius:20px;cursor:pointer;background:var(--bg);color:var(--text2);transition:all .15s}
+.mpill:hover{background:var(--bg2)}
+.mpill.on{background:var(--pbg);border-color:var(--pmid);color:var(--p);font-weight:500}
+/* Translator */
+.trans-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-top:1rem}
+/* Glossary */
+.gentry{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rad);padding:10px 14px;margin-bottom:6px;display:flex;align-items:flex-start;gap:14px}
+.gterm{font-family:'Times New Roman',serif;font-size:17px;direction:rtl;min-width:100px;color:var(--text);line-height:1.5}
+.gbody{flex:1}.gen{font-size:13px;font-weight:500}.gnotes{font-size:12px;color:var(--text3);margin-top:2px}
+.alpha-bar{display:flex;gap:3px;flex-wrap:wrap;margin-bottom:1rem}
+.ab{width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:11px;border:0.5px solid var(--border);border-radius:var(--rad);cursor:pointer;background:var(--bg);color:var(--text2);transition:all .15s}
+.ab:hover{background:var(--bg2)}.ab.on{background:var(--pbg);border-color:var(--pmid);color:var(--p);font-weight:600}
+.ag{margin-bottom:1.25rem}
+.ag-h{font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;padding:6px 0;border-bottom:0.5px solid var(--border);margin-bottom:6px}
+/* Add entry form */
+.aef{background:var(--bg2);border:0.5px dashed var(--border2);border-radius:var(--radl);padding:14px;margin-top:1rem}
+.aef-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px}
+.ar-input{direction:rtl;text-align:right;font-family:'Times New Roman',serif;font-size:16px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="app-name">Bamba Translations</div>
+  <div class="app-sub">Fuzti &amp; Zahra</div>
+  <div class="slabel">Tools</div>
+  <div class="nav on" id="nav-ws" onclick="goPage('ws',this)"><i>✎</i> Workspace</div>
+  <div class="nav" id="nav-imp" onclick="goPage('imp',this)"><i>⇓</i> Import</div>
+  <div class="nav" id="nav-gl" onclick="goPage('gl',this)"><i>▷</i> Glossary</div>
+  <div class="nav" id="nav-set" onclick="goPage('set',this)"><i>⚙</i> Settings</div>
+  <div class="slabel" style="margin-top:6px">Qasidas</div>
+  <div id="qlist"></div>
+  <button class="add-qbtn" onclick="showAddQ()">+ Add Qasida</button>
+  <div class="sb-bot">
+    <div class="slabel" style="padding-top:0">Working as</div>
+    <select class="usel" id="usel" onchange="me=this.value">
+      <option value="Fuzti">Fuzti</option>
+      <option value="Zahra">Zahra</option>
+      <option value="Sheikh">Sheikh</option>
+    </select>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+<!-- WORKSPACE -->
+<div class="page on" id="page-ws">
+  <div class="cpanel" id="cpanel">
+    <div class="cpanel-title">Connect to Google Sheet</div>
+    <input type="text" id="url-input" placeholder="Paste your Apps Script Web App URL here..."/>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="btn btn-a" onclick="doConnect()">Connect</button>
+      <span id="cstatus" style="font-size:12px;color:var(--a)"></span>
+    </div>
+  </div>
+  <div id="ws-body" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:10px">
+      <div><div style="font-size:19px;font-weight:600" id="ws-title">Select a Qasida</div><div style="font-size:12px;color:var(--text3);margin-top:2px" id="ws-sub"></div></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" id="btn-reader" onclick="setView('reader')" style="display:none">Full text view</button>
+        <button class="btn" id="btn-editor" onclick="setView('editor')" style="display:none">Editor</button>
+        <button class="btn btn-p" id="btn-refresh" onclick="loadData()" style="display:none">Refresh</button>
+      </div>
+    </div>
+    <!-- EDITOR VIEW -->
+    <div id="editor-view">
+      <div id="loading" style="display:none;align-items:center;gap:8px;color:var(--text3);font-size:13px;padding:2rem 0"><span class="spin"></span>Loading...</div>
+      <div id="statsbar" style="display:none">
+        <div class="stats">
+          <div class="stat s-u"><div class="stat-n" id="cnt-u">0</div><div class="stat-l">Not translated</div></div>
+          <div class="stat s-t"><div class="stat-n" id="cnt-t">0</div><div class="stat-l">Translated</div></div>
+          <div class="stat s-p"><div class="stat-n" id="cnt-p">0</div><div class="stat-l">Pending sheikh</div></div>
+          <div class="stat s-v"><div class="stat-n" id="cnt-v">0</div><div class="stat-l">Verified</div></div>
+        </div>
+        <div class="filters">
+          <div class="pill f-all on" onclick="setFilter('all',this)">All</div>
+          <div class="pill f-u" onclick="setFilter('untranslated',this)">Not translated</div>
+          <div class="pill f-t" onclick="setFilter('translated',this)">Translated</div>
+          <div class="pill f-p" onclick="setFilter('pending',this)">Pending sheikh</div>
+          <div class="pill f-v" onclick="setFilter('verified',this)">Verified</div>
+        </div>
+      </div>
+      <div id="vlist"></div>
+      <div id="ic-conclusion" style="display:none"></div>
+      <div id="addv-panel" style="display:none">
+        <div class="add-v-card">
+          <div style="font-size:13px;font-weight:500;margin-bottom:10px">Add a verse</div>
+          <span class="lbl">Arabic source (optional)</span>
+          <textarea id="nw-ar" class="ar-ta" placeholder="أدخل النص العربي هنا..." style="margin-bottom:8px"></textarea>
+          <span class="lbl">French source (optional)</span>
+          <textarea id="nw-fr" placeholder="Entrez le texte français ici..." style="margin-bottom:8px;min-height:60px"></textarea>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+            <span class="lbl">English translation (optional)</span>
+            <button class="btn btn-p" style="font-size:11px;padding:3px 10px" onclick="aiNew('en')">✦ Auto-translate</button>
+          </div>
+          <textarea id="nw-en" placeholder="English translation..." style="margin-bottom:8px;min-height:60px"></textarea>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+            <span class="lbl">French translation (optional)</span>
+            <button class="btn btn-b" style="font-size:11px;padding:3px 10px" onclick="aiNew('fr')">✦ Auto-translate</button>
+          </div>
+          <textarea id="nw-ft" placeholder="Traduction française..." style="margin-bottom:10px;min-height:60px"></textarea>
+          <button class="btn btn-p" onclick="addVerse()">Add verse</button>
+        </div>
+      </div>
+      <button class="btn" id="btn-addv" onclick="toggleAddV()" style="display:none;margin-top:8px">+ Add verse</button>
+    </div>
+    <!-- READER VIEW -->
+    <div id="reader-view" style="display:none">
+      <div id="reader-content"></div>
+    </div>
+  </div>
+</div>
+
+<!-- IMPORT -->
+<div class="page" id="page-imp">
+  <div style="font-size:19px;font-weight:600;margin-bottom:4px">Import verses</div>
+  <div style="font-size:12px;color:var(--text3);margin-bottom:1.25rem">Paste text or upload a file, preview and translate, then import into the workspace.</div>
+  <div style="display:flex;gap:6px;margin-bottom:1rem;flex-wrap:wrap">
+    <div class="mpill on" onclick="setImpMode('ar',this)">Arabic only</div>
+    <div class="mpill" onclick="setImpMode('both',this)">Arabic + English</div>
+    <div class="mpill" onclick="setImpMode('file',this)">📄 PDF / Word file</div>
+  </div>
+
+  <!-- FILE IMPORT MODE -->
+  <div id="imp-file" style="display:none">
+    <div class="trans-grid">
+      <div>
+        <span class="lbl" style="margin-bottom:8px;display:block">Upload a PDF or Word document</span>
+        <div style="background:var(--bg);border:0.5px dashed var(--border2);border-radius:var(--radl);padding:2rem;text-align:center;margin-bottom:12px;cursor:pointer" onclick="document.getElementById('file-upload').click()">
+          <div style="font-size:2rem;margin-bottom:8px">📄</div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">Click to choose a file</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:4px">PDF, Word (.docx) or plain text (.txt)</div>
+          <input type="file" id="file-upload" accept=".pdf,.docx,.doc,.txt" style="display:none" onchange="handleFileUpload(this)"/>
+        </div>
+        <div id="file-status" style="font-size:12px;color:var(--text3);margin-bottom:10px"></div>
+        <span class="lbl" style="margin-bottom:6px;display:block">Or paste extracted text directly</span>
+        <textarea id="file-text" style="direction:rtl;text-align:right;font-family:'Times New Roman',serif;font-size:16px;line-height:2;min-height:200px;margin-bottom:10px" placeholder="Text will appear here after upload, or paste manually..."></textarea>
+        <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap">
+          <div class="mpill on" id="sp-file-line" onclick="setSplitFile('line',this)" style="font-size:11px;padding:4px 10px">One per line</div>
+          <div class="mpill" id="sp-file-blank" onclick="setSplitFile('blank',this)" style="font-size:11px;padding:4px 10px">Blank line separator</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn btn-p" onclick="parseFile()">Preview verses</button>
+          <span id="file-count" style="font-size:12px;color:var(--text3)"></span>
+        </div>
+      </div>
+      <div id="file-preview" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <span class="lbl">Review &amp; correct</span>
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+            <select id="imp-q-file" style="font-size:12px;padding:4px 8px;border:0.5px solid var(--border);border-radius:var(--rad);background:var(--bg2);color:var(--text);font-family:inherit"></select>
+            <button class="btn btn-p" onclick="translatePreviewFile()" id="btn-trans-file">✦ Translate all</button>
+            <button class="btn btn-g" onclick="doImportFile()">Import all</button>
+          </div>
+        </div>
+        <div id="file-preview-list"></div>
+      </div>
+    </div>
+  </div>
+  <div id="imp-ar">
+    <div class="trans-grid">
+      <div>
+        <span class="lbl">Split mode</span>
+        <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap">
+          <div class="mpill on" id="sp-line" onclick="setSplit('line',this)" style="font-size:11px;padding:4px 10px">One per line</div>
+          <div class="mpill" id="sp-num" onclick="setSplit('num',this)" style="font-size:11px;padding:4px 10px">Numbered (1. ...)</div>
+          <div class="mpill" id="sp-blank" onclick="setSplit('blank',this)" style="font-size:11px;padding:4px 10px">Blank line separator</div>
+        </div>
+        <textarea id="imp-ar-text" style="direction:rtl;text-align:right;font-family:'Times New Roman',serif;font-size:16px;line-height:2;min-height:260px;margin-bottom:10px" placeholder="Paste Arabic text here..."></textarea>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn btn-p" onclick="parseAr()">Preview</button>
+          <span id="ar-count" style="font-size:12px;color:var(--text3)"></span>
+        </div>
+      </div>
+      <div id="ar-preview" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <span class="lbl">Review &amp; correct</span>
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+            <select id="imp-q-ar" style="font-size:12px;padding:4px 8px;border:0.5px solid var(--border);border-radius:var(--rad);background:var(--bg2);color:var(--text);font-family:inherit"></select>
+            <button class="btn btn-p" onclick="translatePreviewAr()" id="btn-trans-ar">✦ Translate all</button>
+            <button class="btn btn-g" onclick="doImportAr()">Import all</button>
+          </div>
+        </div>
+        <div id="ar-preview-list"></div>
+      </div>
+    </div>
+  </div>
+  <div id="imp-both" style="display:none">
+    <div class="trans-grid">
+      <div>
+        <span class="lbl" style="margin-bottom:6px">Paste alternating lines (Arabic, English, Arabic, English...)</span>
+        <textarea id="imp-both-text" style="min-height:300px;margin-bottom:10px" placeholder="يَاَللَّهُ بِالْمُصْطَفَى&#10;O Allah by the Chosen One&#10;وَبِخَلِيلِكَ إِبْرَاهِيمَ&#10;And by Your Friend Ibrahim..."></textarea>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn btn-p" onclick="parseBoth()">Preview</button>
+          <span id="both-count" style="font-size:12px;color:var(--text3)"></span>
+        </div>
+      </div>
+      <div id="both-preview" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <span class="lbl">Review &amp; correct</span>
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+            <select id="imp-q-both" style="font-size:12px;padding:4px 8px;border:0.5px solid var(--border);border-radius:var(--rad);background:var(--bg2);color:var(--text);font-family:inherit"></select>
+            <button class="btn btn-b" id="btn-trans-both" onclick="translatePreviewBoth()">✦ Translate to French</button>
+            <button class="btn btn-g" onclick="doImportBoth()">Import all</button>
+          </div>
+        </div>
+        <div id="both-preview-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- GLOSSARY -->
+<div class="page" id="page-gl">
+  <div style="font-size:19px;font-weight:600;margin-bottom:4px">Glossary</div>
+  <div style="font-size:12px;color:var(--text3);margin-bottom:1.25rem">Shared Arabic &amp; Wolof terms — sorted alphabetically by English equivalent.</div>
+  <div style="display:flex;gap:8px;align-items:center;margin-bottom:1rem;flex-wrap:wrap">
+    <input type="text" style="flex:1;max-width:280px;border-radius:20px" placeholder="Search terms..." oninput="gSearch(this.value)" id="gsearch"/>
+    <button class="btn btn-p" onclick="toggleAEF()">+ Add term</button>
+  </div>
+  <div class="alpha-bar" id="abar"></div>
+  <div id="glist"></div>
+  <div class="aef" id="aef" style="display:none">
+    <div style="font-size:13px;font-weight:500;margin-bottom:10px">Add a term</div>
+    <div class="aef-grid">
+      <div><span class="lbl">Arabic / Wolof term</span><input type="text" id="g-term" class="ar-input" placeholder="أدخل الكلمة..."/></div>
+      <div><span class="lbl">English equivalent</span><input type="text" id="g-en" placeholder="English..."/></div>
+    </div>
+    <span class="lbl">Notes (optional)</span>
+    <input type="text" id="g-notes" placeholder="e.g. Used for spiritual purification" style="margin-bottom:10px"/>
+    <button class="btn btn-p" onclick="addGEntry()">Add to glossary</button>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="page" id="page-set">
+  <div style="font-size:19px;font-weight:600;margin-bottom:4px">Settings</div>
+  <div style="font-size:12px;color:var(--text3);margin-bottom:1.5rem">API keys and preferences.</div>
+  <div class="card">
+    <div style="font-size:14px;font-weight:600;margin-bottom:4px">Anthropic API Key</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:12px">Powers the ✦ Auto-translate button. Get yours at <strong>console.anthropic.com</strong></div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <input type="password" id="ak-input" placeholder="sk-ant-..." style="flex:1" oninput="saveAK(this.value)"/>
+      <div id="ak-dot" style="width:10px;height:10px;border-radius:50%;background:var(--border2);flex-shrink:0"></div>
+    </div>
+    <div id="ak-msg" style="font-size:11px;color:var(--text3);margin-top:6px"></div>
+  </div>
+  <div class="card">
+    <div style="font-size:14px;font-weight:600;margin-bottom:4px">Google Sheet URL</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:12px">Your Apps Script Web App URL.</div>
+    <div style="display:flex;gap:8px">
+      <input type="text" id="url-set" placeholder="https://script.google.com/macros/s/..." style="flex:1"/>
+      <button class="btn btn-p" onclick="updateURL()">Update</button>
+    </div>
+  </div>
+  <div class="card">
+    <div style="font-size:14px;font-weight:600;margin-bottom:12px">Auto-translate languages</div>
+    <div style="display:flex;gap:16px">
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="lang-en" checked onchange="saveLangs()"/> English</label>
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="lang-fr" onchange="saveLangs()"/> French</label>
+    </div>
+  </div>
+</div>
+
+</div><!-- end main -->
+</div><!-- end app -->
+
+<!-- Modals -->
+<div class="modal-bg" id="addq-modal">
+  <div class="modal">
+    <h3>Add a Qasida</h3>
+    <input type="text" id="newq-name" placeholder="e.g. Matlabul Fawzayn" style="margin-bottom:0"/>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-p" onclick="addQasida()">Add</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────
+const SK = "bamba_url_v4";
+const AKK = "bamba_ak_v2";
+const GK = "bamba_glossary_v2";
+const LK = "bamba_langs_v2";
+
+const ls = { get: k => { try { return localStorage.getItem(k)||""; } catch(e) { return ""; } }, set: (k,v) => { try { localStorage.setItem(k,v); } catch(e){} } };
+
+let scriptUrl = ls.get(SK);
+let ak = ls.get(AKK);
+let allData = {};
+let qasidas = [];
+let activeQ = null;
+let filter = "all";
+let me = "Fuzti";
+let openV = new Set();
+let view = "editor";
+let readerMode = "ar-en";
+let impMode = "ar";
+let splitMode = "line";
+let parsedAr = [];
+let parsedPairs = [];
+let glossary = [];
+let gFilter = "";
+let gLetter = "";
+
+// ─── INIT ─────────────────────────────────────────────────────
+window.onload = () => {
+  if (ak) { document.getElementById("ak-input").value = ak; updateAKDot(); }
+  if (scriptUrl) { document.getElementById("url-set").value = scriptUrl; document.getElementById("url-input").value = scriptUrl; }
+  const langs = getLangs();
+  document.getElementById("lang-en").checked = langs.en;
+  document.getElementById("lang-fr").checked = langs.fr;
+  try { glossary = JSON.parse(ls.get(GK)) || []; } catch(e) { glossary = []; }
+  renderAlphaBar(); renderGlossary();
+  if (scriptUrl) { hideCpanel(); loadData(); }
+};
+
+// ─── NAVIGATION ───────────────────────────────────────────────
+function goPage(name, el) {
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("on"));
+  document.querySelectorAll(".nav").forEach(n => n.classList.remove("on"));
+  document.getElementById("page-"+name).classList.add("on");
+  el.classList.add("on");
+}
+
+// ─── CONNECTION ───────────────────────────────────────────────
+function doConnect() {
+  const val = document.getElementById("url-input").value.trim();
+  if (!val) { showToast("Please paste your Web App URL"); return; }
+  scriptUrl = val;
+  ls.set(SK, scriptUrl);
+  document.getElementById("url-set").value = scriptUrl;
+  document.getElementById("cstatus").textContent = "Connecting...";
+  hideCpanel();
+  loadData();
+}
+
+function hideCpanel() {
+  document.getElementById("cpanel").style.display = "none";
+  document.getElementById("ws-body").style.display = "";
+}
+
+function updateURL() {
+  const val = document.getElementById("url-set").value.trim();
+  if (!val) return;
+  scriptUrl = val;
+  ls.set(SK, scriptUrl);
+  showToast("URL updated");
+  loadData();
+}
+
+// ─── API (JSONP — required for Google Apps Script cross-origin) ─
+function api(params) {
+  return new Promise((resolve) => {
+    if (!scriptUrl) { showToast("Not connected"); resolve(null); return; }
+    const cb = "cb_" + Date.now() + "_" + Math.random().toString(36).slice(2);
+    params.callback = cb;
+    const url = scriptUrl + "?" + new URLSearchParams(params).toString();
+    let done = false;
+    const finish = (data) => {
+      if (done) return; done = true;
+      clearTimeout(timer);
+      try { delete window[cb]; } catch(e){}
+      try { document.getElementById(cb)?.remove(); } catch(e){}
+      resolve(data);
+    };
+    const timer = setTimeout(() => {
+      finish(null);
+      showToast("Timed out — check script URL and deployment settings");
+      showLoad(false);
+      document.getElementById("cpanel").style.display = "";
+      document.getElementById("ws-body").style.display = "none";
+    }, 10000);
+    window[cb] = (data) => finish(data);
+    const s = document.createElement("script");
+    s.id = cb; s.src = url;
+    s.onerror = () => { finish(null); showToast("Connection error — redeploy script and set access to Anyone"); showLoad(false); };
+    document.head.appendChild(s);
+  });
+}
+
+// ─── DATA ─────────────────────────────────────────────────────
+async function loadData() {
+  showLoad(true);
+  const res = await api({ action: "getAll" });
+  showLoad(false);
+  if (!res) return;
+  allData = res.data || {};
+  // Sort each qasida's verses by sort_order if present
+  Object.keys(allData).forEach(q => {
+    const intro = allData[q].find(v=>String(v.id)==="__intro__");
+    const conclusion = allData[q].find(v=>String(v.id)==="__conclusion__");
+    const main = allData[q]
+      .filter(v=>String(v.id)!=="__intro__"&&String(v.id)!=="__conclusion__")
+      .sort((a,b) => (a.sort_order??999) - (b.sort_order??999));
+    allData[q] = [...(intro?[intro]:[]), ...main, ...(conclusion?[conclusion]:[])];
+  });
+  qasidas = (res.qasidas || []).slice().sort((a,b) => a.localeCompare(b));
+  renderSidebar();
+  if (activeQ && allData[activeQ]) renderVerses();
+  else if (qasidas.length > 0) selectQ(qasidas[0]);
+  document.getElementById("btn-refresh").style.display = "";
+}
+
+// ─── SIDEBAR ──────────────────────────────────────────────────
+function renderSidebar() {
+  const el = document.getElementById("qlist");
+  const sorted = qasidas.slice().sort((a,b) => a.localeCompare(b));
+  if (!sorted.length) { el.innerHTML = '<div style="font-size:12px;color:var(--text3);padding:6px">No qasidas yet</div>'; return; }
+  el.innerHTML = sorted.map(q => {
+    const vv = allData[q] || [];
+    const done = vv.filter(v => v.status==="verified").length;
+    const pct = vv.length ? Math.round(done/vv.length*100) : 0;
+    return `<div class="qi${activeQ===q?" on":""}" onclick="selectQ('${q}')">
+      <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
+        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${q}</span>
+        <span style="height:3px;background:var(--border);border-radius:2px;overflow:hidden">
+          <span style="display:block;height:100%;width:${pct}%;background:#97C459;transition:width .3s"></span>
+        </span>
+      </span>
+      <span class="qc">${vv.length}</span>
+    </div>`;
+  }).join("");
+}
+
+function selectQ(name) {
+  activeQ = name;
+  openV.clear();
+  view = "editor";
+  document.getElementById("ws-title").textContent = name;
+  document.getElementById("btn-reader").style.display = "";
+  document.getElementById("btn-editor").style.display = "none";
+  document.getElementById("btn-addv").style.display = "";
+  document.getElementById("editor-view").style.display = "";
+  document.getElementById("reader-view").style.display = "none";
+  document.getElementById("addv-panel").style.display = "none";
+  // Render intro/conclusion panels
+  document.getElementById("ic-conclusion").style.display = "";
+  document.getElementById("ic-conclusion").innerHTML = makeICPanel("conclusion","Conclusion");
+  // Insert intro before vlist
+  let introEl = document.getElementById("ic-intro");
+  if (!introEl) {
+    introEl = document.createElement("div");
+    introEl.id = "ic-intro";
+    document.getElementById("vlist").before(introEl);
+  }
+  introEl.innerHTML = makeICPanel("intro","Introduction");
+  // Load existing values
+  ["intro","conclusion"].forEach(type => {
+    const existing = (allData[name]||[]).find(v => String(v.id) === `__${type}__`);
+    if (existing) {
+      const arEl = document.getElementById(`${type}-ar`); if(arEl) arEl.value = existing.arabic||"";
+      const enEl = document.getElementById(`${type}-en`); if(enEl) enEl.value = existing.translation||"";
+      const frEl = document.getElementById(`${type}-fr`); if(frEl) frEl.value = existing.french_translation||"";
+    }
+  });
+  renderSidebar();
+  renderVerses();
+  goPage("ws", document.getElementById("nav-ws"));
+}
+
+// ─── WORKSPACE VIEWS ──────────────────────────────────────────
+function setView(v) {
+  view = v;
+  if (v === "reader") {
+    document.getElementById("editor-view").style.display = "none";
+    document.getElementById("reader-view").style.display = "";
+    document.getElementById("btn-reader").style.display = "none";
+    document.getElementById("btn-editor").style.display = "";
+    renderReader();
+  } else {
+    document.getElementById("editor-view").style.display = "";
+    document.getElementById("reader-view").style.display = "none";
+    document.getElementById("btn-reader").style.display = "";
+    document.getElementById("btn-editor").style.display = "none";
+  }
+}
+
+function updateStats(vv) {
+  let u=0,t=0,p=0,v=0;
+  vv.forEach(x => { if(x.status==="untranslated")u++; else if(x.status==="translated")t++; else if(x.status==="pending")p++; else if(x.status==="verified")v++; });
+  document.getElementById("cnt-u").textContent=u;
+  document.getElementById("cnt-t").textContent=t;
+  document.getElementById("cnt-p").textContent=p;
+  document.getElementById("cnt-v").textContent=v;
+  document.getElementById("statsbar").style.display="";
+  document.getElementById("ws-sub").textContent=`${vv.length} verse${vv.length!==1?"s":""}`;
+}
+
+function setFilter(f,el) {
+  filter=f;
+  document.querySelectorAll(".pill").forEach(p=>p.classList.remove("on"));
+  el.classList.add("on");
+  renderVerses();
+}
+
+// ─── RENDER VERSES ────────────────────────────────────────────
+const SL={untranslated:"Not translated",translated:"Translated",pending:"Pending sheikh",verified:"Verified"};
+const BC={untranslated:"b-u",translated:"b-t",pending:"b-p",verified:"b-v"};
+const AVC={Fuzti:"av-f",Zahra:"av-z",Sheikh:"av-s"};
+const AVI={Fuzti:"FU",Zahra:"ZA",Sheikh:"SH"};
+
+function renderVerses() {
+  if (!activeQ) return;
+  const vv = allData[activeQ] || [];
+  updateStats(vv.filter(v=>String(v.id)!=="__intro__"&&String(v.id)!=="__conclusion__"));
+  const filtered = filter==="all"
+    ? vv.filter(v=>String(v.id)!=="__intro__"&&String(v.id)!=="__conclusion__")
+    : vv.filter(v=>String(v.id)!=="__intro__"&&String(v.id)!=="__conclusion__"&&v.status===filter);
+  const el = document.getElementById("vlist");
+  if (!filtered.length) { el.innerHTML='<div style="font-size:13px;color:var(--text3);padding:1rem 0">No verses in this category.</div>'; return; }
+  el.innerHTML = filtered.map((v,i) => renderVC(v, i, filtered)).join("");
+}
+
+function renderVC(v, idx, allFiltered) {
+  const seqNum = (allData[activeQ]||[]).filter(x=>String(x.id)!=="__intro__"&&String(x.id)!=="__conclusion__").indexOf(v) + 1;
+  const open = openV.has(String(v.id));
+  const prev = v.arabic ? v.arabic.slice(0,50)+"…" : (v.french ? v.french.slice(0,50)+"…" : "Verse "+seqNum);
+  const cmts = (v.comments||[]).map(c=>`
+    <div class="cmt">
+      <div class="av ${AVC[c.author]||"av-f"}">${AVI[c.author]||c.author.slice(0,2).toUpperCase()}</div>
+      <div class="cb"><span class="ca">${c.author}</span> <span class="cm">${c.ts}</span><div class="ct">${c.text}</div></div>
+    </div>`).join("");
+  const aiBox = v.ai_draft ? `<div class="ai-box"><div class="ai-lbl">AI draft</div><div class="ai-text">${v.ai_draft}</div><button class="btn btn-p" style="font-size:11px;padding:4px 10px;margin-top:6px" onclick="useDraft('${v.id}')">Use draft</button></div>` : "";
+  const body = open ? `<div class="vbody">
+    <div class="sblock"><span class="lbl">Arabic source</span><textarea class="ar-ta" id="ar-${v.id}" style="margin-top:5px">${v.arabic||""}</textarea></div>
+    <div class="sblock"><span class="lbl">French source</span><textarea id="fs-${v.id}" style="min-height:55px;margin-top:5px">${v.french||""}</textarea></div>
+    ${aiBox}
+    <div class="sblock">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+        <span class="lbl">English translation</span>
+        <button class="btn btn-p" style="font-size:11px;padding:3px 9px" onclick="aiVerse('${v.id}','en')">✦ Auto-translate</button>
+      </div>
+      <textarea id="en-${v.id}" style="min-height:70px">${v.translation||""}</textarea>
+    </div>
+    <div class="sblock">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+        <span class="lbl">French translation</span>
+        <button class="btn btn-b" style="font-size:11px;padding:3px 9px" onclick="aiVerse('${v.id}','fr')">✦ Auto-translate</button>
+      </div>
+      <textarea id="ft-${v.id}" style="min-height:70px">${v.french_translation||""}</textarea>
+    </div>
+    ${me==="Sheikh" ? `<div class="sblock"><span class="lbl">Sheikh notes</span><textarea id="sn-${v.id}" style="min-height:50px;background:var(--abg);border-color:#EF9F27;margin-top:5px">${v.sheikh_notes||""}</textarea></div>` : (v.sheikh_notes?`<div style="background:var(--abg);border-radius:var(--rad);padding:8px 12px;margin-top:8px;font-size:12px;color:var(--a)"><strong>Sheikh note:</strong> ${v.sheikh_notes}</div>`:"")}
+    <div class="arow">
+      <select class="asel" id="who-${v.id}"><option value="Fuzti"${v.assignee==="Fuzti"?" selected":""}>Fuzti</option><option value="Zahra"${v.assignee==="Zahra"?" selected":""}>Zahra</option></select>
+      <button class="btn btn-p" onclick="saveDraft('${v.id}')">Save draft</button>
+      ${v.status!=="pending"&&v.status!=="verified"?`<button class="btn btn-a" onclick="submitV('${v.id}')">Submit to sheikh</button>`:""}
+      ${v.status==="pending"?`<button class="btn" onclick="unsubmit('${v.id}')" style="background:var(--bg3)">Unsubmit</button>`:""}
+      ${v.status==="pending"?`<button class="btn btn-g" onclick="markVerified('${v.id}')">Mark verified</button>`:""}
+      ${v.status==="verified"?`<span style="font-size:11px;color:var(--g);font-weight:500">✓ Verified</span><button class="btn btn-r" onclick="unverify('${v.id}')" style="font-size:11px;margin-left:4px">Undo</button>`:""}
+      <button class="btn btn-r" onclick="deleteVerse('${v.id}')" style="margin-left:auto;font-size:12px">Delete</button>
+    </div>
+    <div class="cmts">
+      <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px">Discussion</div>
+      ${cmts}
+      <div class="add-cmt">
+        <div class="av ${AVC[me]||"av-f"}">${AVI[me]||"?"}</div>
+        <input type="text" id="cm-${v.id}" placeholder="Leave a note..." onkeydown="if(event.key==='Enter')postCmt('${v.id}')"/>
+        <button class="btn" style="font-size:12px" onclick="postCmt('${v.id}')">Post</button>
+      </div>
+    </div>
+  </div>` : "";
+  return `<div class="vc${open?" open":""}" id="vc-${v.id}" draggable="true" ondragstart="dragStart(event,'${v.id}')" ondragover="dragOver(event)" ondrop="dragDrop(event,'${v.id}')" ondragend="dragEnd(event)">
+    <div class="vc-head" onclick="toggleV('${v.id}')">
+      <span class="v-num">${seqNum}</span>
+      <span style="cursor:grab;color:var(--text3);font-size:14px;padding:0 6px;flex-shrink:0" onclick="event.stopPropagation()" title="Drag to reorder">⠿</span>
+      <span class="v-prev">${prev}</span>
+      <span class="badge ${BC[v.status]}">${SL[v.status]}</span>
+      <span class="chev">▼</span>
+    </div>${body}
+  </div>`;
+}
+
+function toggleV(id) {
+  id = String(id);
+  if (openV.has(id)) openV.delete(id);
+  else openV.add(id);
+  renderVerses();
+}
+
+// ─── VERSE ACTIONS ────────────────────────────────────────────
+function getV(id) { return (allData[activeQ]||[]).find(v=>String(v.id)===String(id)); }
+
+function upLocal(id, changes) {
+  allData[activeQ] = (allData[activeQ]||[]).map(v => String(v.id)===String(id) ? {...v,...changes} : v);
+}
+
+async function saveDraft(id) {
+  const en = document.getElementById("en-"+id)?.value||"";
+  const ft = document.getElementById("ft-"+id)?.value||"";
+  const ar = document.getElementById("ar-"+id)?.value;
+  const fs = document.getElementById("fs-"+id)?.value;
+  const sn = document.getElementById("sn-"+id)?.value;
+  const who = document.getElementById("who-"+id)?.value||me;
+  const v = getV(id);
+  let status = v.status;
+  if (status==="untranslated"&&(en.trim()||ft.trim())) status="translated";
+  const p = {action:"saveVerse",qasida:activeQ,id,translation:en,french_translation:ft,assignee:who,status};
+  if (ar!==undefined) p.arabic=ar;
+  if (fs!==undefined) p.french=fs;
+  if (sn!==undefined) p.sheikh_notes=sn;
+  const res = await api(p);
+  if (res?.success) { upLocal(id,{translation:en,french_translation:ft,assignee:who,status,arabic:ar??v.arabic,french:fs??v.french,sheikh_notes:sn??v.sheikh_notes}); renderVerses(); renderSidebar(); showToast("Saved"); }
+}
+
+async function submitV(id) {
+  const en = document.getElementById("en-"+id)?.value||"";
+  const who = document.getElementById("who-"+id)?.value||me;
+  const res = await api({action:"saveVerse",qasida:activeQ,id,translation:en,assignee:who,status:"pending"});
+  if (res?.success) { upLocal(id,{translation:en,status:"pending",assignee:who}); await api({action:"addComment",qasida:activeQ,id,author:who,text:"Submitted for Sheikh verification."}); renderVerses(); showToast("Submitted"); }
+}
+
+async function unsubmit(id) {
+  const res = await api({action:"saveVerse",qasida:activeQ,id,status:"translated"});
+  if (res?.success) { upLocal(id,{status:"translated"}); renderVerses(); showToast("Unsubmitted"); }
+}
+
+async function markVerified(id) {
+  const sn = document.getElementById("sn-"+id)?.value||"";
+  const res = await api({action:"saveVerse",qasida:activeQ,id,status:"verified",sheikh_notes:sn});
+  if (res?.success) { upLocal(id,{status:"verified",sheikh_notes:sn}); renderVerses(); showToast("Verified"); }
+}
+
+async function unverify(id) {
+  const res = await api({action:"saveVerse",qasida:activeQ,id,status:"pending"});
+  if (res?.success) { upLocal(id,{status:"pending"}); renderVerses(); showToast("Undone"); }
+}
+
+let dragId = null;
+
+function dragStart(event, id) {
+  dragId = id;
+  event.dataTransfer.effectAllowed = "move";
+  event.currentTarget.style.opacity = "0.4";
+}
+
+function dragEnd(event) {
+  event.currentTarget.style.opacity = "";
+  document.querySelectorAll(".vc").forEach(el => el.style.borderTop = "");
+}
+
+function dragOver(event) {
+  event.preventDefault();
+  event.dataTransfer.dropEffect = "move";
+  document.querySelectorAll(".vc").forEach(el => el.style.borderTop = "");
+  event.currentTarget.style.borderTop = "2px solid var(--pmid)";
+}
+
+async function dragDrop(event, targetId) {
+  event.preventDefault();
+  document.querySelectorAll(".vc").forEach(el => el.style.borderTop = "");
+  if (!dragId || dragId === targetId) return;
+  const vv = (allData[activeQ]||[]).filter(v=>String(v.id)!=="__intro__"&&String(v.id)!=="__conclusion__");
+  const fromIdx = vv.findIndex(v=>String(v.id)===String(dragId));
+  const toIdx = vv.findIndex(v=>String(v.id)===String(targetId));
+  if (fromIdx===-1||toIdx===-1) return;
+  // Reorder
+  const moved = vv.splice(fromIdx, 1)[0];
+  vv.splice(toIdx, 0, moved);
+  // Rebuild allData
+  const intro = (allData[activeQ]||[]).find(v=>String(v.id)==="__intro__");
+  const conclusion = (allData[activeQ]||[]).find(v=>String(v.id)==="__conclusion__");
+  allData[activeQ] = [...(intro?[intro]:[]), ...vv, ...(conclusion?[conclusion]:[])];
+  dragId = null;
+  renderVerses();
+  // Save order to sheet
+  for (let i=0; i<vv.length; i++) {
+    await api({action:"saveVerse", qasida:activeQ, id:vv[i].id, sort_order:i});
+  }
+  showToast("Order saved");
+}
+
+
+  if (!confirm("Delete this verse?")) return;
+  const res = await api({action:"deleteVerse",qasida:activeQ,id});
+  if (res?.success) { allData[activeQ]=(allData[activeQ]||[]).filter(v=>String(v.id)!==String(id)); openV.delete(String(id)); renderVerses(); renderSidebar(); showToast("Deleted"); }
+}
+
+async function postCmt(id) {
+  const inp = document.getElementById("cm-"+id);
+  if (!inp?.value.trim()) return;
+  const res = await api({action:"addComment",qasida:activeQ,id,author:me,text:inp.value.trim()});
+  if (res?.success) { const c={author:me,text:inp.value.trim(),ts:new Date().toLocaleString()}; upLocal(id,{comments:[...(getV(id)?.comments||[]),c]}); inp.value=""; renderVerses(); }
+}
+
+function useDraft(id) {
+  const v = getV(id);
+  if (!v?.ai_draft) return;
+  const ta = document.getElementById("en-"+id);
+  if (ta) ta.value = v.ai_draft;
+}
+
+// ─── ADD VERSE / QASIDA ───────────────────────────────────────
+function toggleAddV() {
+  const p = document.getElementById("addv-panel");
+  p.style.display = p.style.display==="none" ? "" : "none";
+}
+
+async function addVerse() {
+  const ar = document.getElementById("nw-ar").value.trim();
+  const fs = document.getElementById("nw-fr").value.trim();
+  const en = document.getElementById("nw-en").value.trim();
+  const ft = document.getElementById("nw-ft").value.trim();
+  const status = (en||ft) ? "translated" : "untranslated";
+  const res = await api({action:"addVerse",qasida:activeQ,arabic:ar,french:fs,translation:en,french_translation:ft,status});
+  if (res?.success) {
+    allData[activeQ]=[...(allData[activeQ]||[]),{id:res.id,arabic:ar,french:fs,ai_draft:"",translation:en,french_translation:ft,status,assignee:me,sheikh_notes:"",comments:[]}];
+    ["nw-ar","nw-fr","nw-en","nw-ft"].forEach(id => { const el=document.getElementById(id); if(el) el.value=""; });
+    document.getElementById("addv-panel").style.display="none";
+    renderVerses(); renderSidebar(); showToast("Verse added");
+  }
+}
+
+function showAddQ() { document.getElementById("addq-modal").classList.add("on"); }
+function closeModal() { document.getElementById("addq-modal").classList.remove("on"); document.getElementById("newq-name").value=""; }
+
+async function addQasida() {
+  const name = document.getElementById("newq-name").value.trim();
+  if (!name) return;
+  const res = await api({action:"addQasida",name});
+  if (res?.success) {
+    if (!qasidas.includes(name)) { qasidas.push(name); qasidas.sort((a,b)=>a.localeCompare(b)); }
+    allData[name]=[];
+    closeModal(); renderSidebar(); selectQ(name); showToast("Qasida added");
+  } else showToast(res?.error||"Error");
+}
+
+// ─── READER ───────────────────────────────────────────────────
+function renderReader() {
+  const all = allData[activeQ]||[];
+  const intro = all.find(v=>String(v.id)==="__intro__");
+  const conclusion = all.find(v=>String(v.id)==="__conclusion__");
+  const vv = all.filter(v=>String(v.id)!=="__intro__"&&String(v.id)!=="__conclusion__"&&(v.arabic||v.translation||v.french_translation));
+  const el = document.getElementById("reader-content");
+  if (!vv.length && !intro && !conclusion) { el.innerHTML='<div style="font-size:13px;color:var(--text3);padding:1rem 0">No verses yet.</div>'; return; }
+
+  const mb = (m,label) => `<div class="mpill${readerMode===m?" on":""}" onclick="setRM('${m}')">${label}</div>`;
+  const bar = `<div class="reader-mode-bar">
+    ${mb("ar","Arabic only")}
+    ${mb("ar-en","Arabic + English")}
+    ${mb("ar-fr","Arabic + French")}
+    ${mb("en","English only")}
+    ${mb("fr","French only")}
+    ${mb("all","All three")}
+    <div style="width:0.5px;height:20px;background:var(--border);margin:0 2px"></div>
+    <button class="btn btn-r" style="font-size:12px" onclick="exportPDF()">Export PDF</button>
+    <button class="btn btn-b" style="font-size:12px" onclick="exportWord()">Export Word</button>
+  </div>`;
+
+  function renderBlock(v, showNum) {
+    if (readerMode==="ar") return `<div style="border-bottom:0.5px solid var(--border);padding:12px 0;direction:rtl;text-align:right;font-family:'Times New Roman',serif;font-size:18px;line-height:2.4">${showNum?`<span style="font-size:10px;color:var(--text3);font-family:sans-serif;direction:ltr;display:inline-block;margin-left:8px">${v.id}</span>`:""} ${v.arabic||""}</div>`;
+    if (readerMode==="ar-en") return `<div class="rv-2col"><div class="rv-arabic">${showNum?`<div class="rv-num">${v.id}</div>`:""}${v.arabic||""}</div><div class="rv-trans">${showNum?`<div class="rv-num">${v.id}</div>`:""}${v.translation||""}</div></div>`;
+    if (readerMode==="ar-fr") return `<div class="rv-2col"><div class="rv-arabic">${showNum?`<div class="rv-num">${v.id}</div>`:""}${v.arabic||""}</div><div class="rv-trans">${showNum?`<div class="rv-num">${v.id}</div>`:""}${v.french_translation||""}</div></div>`;
+    if (readerMode==="en") return `<div class="rv-single" style="font-style:italic;color:var(--text2)">${showNum?`<span style="font-size:11px;color:var(--text3);font-style:normal;margin-right:8px">${v.id}</span>`:""}${v.translation||""}</div>`;
+    if (readerMode==="fr") return `<div class="rv-single" style="font-style:italic;color:var(--text2)">${showNum?`<span style="font-size:11px;color:var(--text3);font-style:normal;margin-right:8px">${v.id}</span>`:""}${v.french_translation||""}</div>`;
+    // all three
+    return `<tr>
+      <td width="40%" style="padding:12px 10px 12px 0;border-bottom:0.5px solid var(--border);vertical-align:top;direction:rtl;text-align:right;font-family:'Times New Roman',serif;font-size:16px;line-height:2">${v.arabic||""}</td>
+      <td width="30%" style="padding:12px 8px;border-bottom:0.5px solid var(--border);border-right:0.5px solid var(--border);vertical-align:top;font-style:italic;color:var(--text2);line-height:1.8;direction:ltr;text-align:left">${v.translation||""}</td>
+      <td width="30%" style="padding:12px 0 12px 8px;border-bottom:0.5px solid var(--border);border-right:0.5px solid var(--border);vertical-align:top;font-style:italic;color:var(--text2);line-height:1.8;direction:ltr;text-align:left">${v.french_translation||""}</td>
+    </tr>`;
+  }
+
+  const wrap = readerMode==="all" ? (html=>`<table width="100%" style="border-collapse:collapse;direction:rtl">${html}</table>`) : (html=>html);
+
+  let html = "";
+  if (intro) html += renderBlock(intro, false);
+  html += wrap(vv.map(v=>renderBlock(v,true)).join(""));
+  if (conclusion) html += renderBlock(conclusion, false);
+
+  el.innerHTML = bar + html;
+}
+
+function setRM(m) { readerMode=m; renderReader(); }
+
+// ─── EXPORTS ──────────────────────────────────────────────────
+function exportPDF() {
+  const all = allData[activeQ]||[];
+  const intro = all.find(v=>String(v.id)==="__intro__");
+  const conclusion = all.find(v=>String(v.id)==="__conclusion__");
+  const vv = all.filter(v=>String(v.id)!=="__intro__"&&String(v.id)!=="__conclusion__"&&(v.arabic||v.translation||v.french_translation));
+  if (!vv.length && !intro && !conclusion) { showToast("No verses to export"); return; }
+
+  const title = {ar:"Arabic",en:"English","ar-en":"Arabic & English","ar-fr":"Arabic & French",fr:"French",all:"Arabic · English · French"}[readerMode]||"";
+
+  function pdfBlock(v, showNum) {
+    if (readerMode==="ar") return `<div style="direction:rtl;text-align:right;font-family:'Times New Roman',serif;font-size:18px;line-height:2.4;border-bottom:1px solid #ddd;padding:12px 0">${showNum?`<span style="font-size:10px;color:#999;font-family:sans-serif;direction:ltr;display:inline-block;margin-left:8px">${v.id}</span>`:""} ${v.arabic||""}</div>`;
+    if (readerMode==="en") return `<div style="border-bottom:1px solid #ddd;padding:12px 0;font-style:italic;color:#444;font-size:15px;line-height:1.9">${showNum?`<span style="font-size:10px;color:#999;font-style:normal;margin-right:8px">${v.id}</span>`:""}${v.translation||""}</div>`;
+    if (readerMode==="fr") return `<div style="border-bottom:1px solid #ddd;padding:12px 0;font-style:italic;color:#444;font-size:15px;line-height:1.9">${showNum?`<span style="font-size:10px;color:#999;font-style:normal;margin-right:8px">${v.id}</span>`:""}${v.french_translation||""}</div>`;
+    if (readerMode==="ar-en"||readerMode==="ar-fr") {
+      const col2 = readerMode==="ar-en" ? v.translation : v.french_translation;
+      return `<tr><td width="50%" style="padding:12px 10px 12px 0;border-bottom:1px solid #ddd;vertical-align:top;direction:rtl;text-align:right;font-family:'Times New Roman',serif;font-size:16px;line-height:2">${v.arabic||""}</td><td width="50%" style="padding:12px 0 12px 10px;border-bottom:1px solid #ddd;border-right:1px solid #eee;vertical-align:top;font-style:italic;color:#444;line-height:1.9;direction:ltr;text-align:left">${col2||""}</td></tr>`;
+    }
+    return `<tr><td width="40%" style="padding:10px 8px 10px 0;border-bottom:1px solid #ddd;vertical-align:top;direction:rtl;text-align:right;font-family:'Times New Roman',serif;font-size:15px;line-height:2">${v.arabic||""}</td><td width="30%" style="padding:10px 6px;border-bottom:1px solid #ddd;border-right:1px solid #eee;vertical-align:top;font-style:italic;color:#444;line-height:1.8;direction:ltr;text-align:left;font-size:13px">${v.translation||""}</td><td width="30%" style="padding:10px 0 10px 6px;border-bottom:1px solid #ddd;border-right:1px solid #eee;vertical-align:top;font-style:italic;color:#444;line-height:1.8;direction:ltr;text-align:left;font-size:13px">${v.french_translation||""}</td></tr>`;
+  }
+
+  const isTable = readerMode==="ar-en"||readerMode==="ar-fr"||readerMode==="all";
+  const wrap = isTable ? (h=>`<table width="100%" style="border-collapse:collapse;direction:rtl">${h}</table>`) : (h=>h);
+
+  let body = "";
+  if (intro) body += pdfBlock(intro, false);
+  body += wrap(vv.map(v=>pdfBlock(v,true)).join(""));
+  if (conclusion) body += pdfBlock(conclusion, false);
+
+  const ps = "<scr"+"ipt>window.onload=()=>{window.print();window.onafterprint=()=>window.close();}<"+"/scr"+"ipt>";
+  const w = window.open("","_blank","width=800,height=600");
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${activeQ} — Sheikh Ahmadou Bamba</title><style>body{font-family:sans-serif;margin:0;padding:40px 48px;color:#1a1a1a}h1{font-size:22px;font-weight:600;margin-bottom:4px}.sub{font-size:13px;color:#888;margin-bottom:32px}@media print{body{padding:20px}}</style></head><body><h1>${activeQ}</h1><div class="sub">Sheikh Ahmadou Bamba · ${title}</div>${body}${ps}</body></html>`);
+  w.document.close();
+}
+
+function exportWord() {
+  const vv = (allData[activeQ]||[]).filter(v=>v.arabic||v.translation||v.french_translation);
+  if (!vv.length) { showToast("No verses to export"); return; }
+  let rows = "";
+  if (readerMode==="ar") {
+    rows=vv.map(v=>`<w:p><w:pPr><w:bidi/><w:jc w:val="right"/></w:pPr><w:r><w:rPr><w:rtl/></w:rPr><w:t>${ex(v.arabic||"")}</w:t></w:r></w:p>`).join("");
+  } else if (readerMode==="en") {
+    rows=vv.map(v=>`<w:p><w:r><w:t>${ex(v.translation||"")}</w:t></w:r></w:p><w:p/>`).join("");
+  } else if (readerMode==="fr") {
+    rows=vv.map(v=>`<w:p><w:r><w:t>${ex(v.french_translation||"")}</w:t></w:r></w:p><w:p/>`).join("");
+  } else {
+    rows=vv.map(v=>`<w:tbl><w:tblPr><w:tblW w:w="9360" w:type="dxa"/></w:tblPr><w:tr><w:tc><w:tcPr><w:tcW w:w="4680" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:bidi/><w:jc w:val="right"/></w:pPr><w:r><w:rPr><w:rtl/></w:rPr><w:t>${ex(v.arabic||"")}</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w="4680" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>${ex(v.translation||"")}</w:t></w:r></w:p></w:tc></w:tr></w:tbl><w:p/>`).join("");
+  }
+  const xml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><?mso-application progid="Word.Document"?><w:wordDocument xmlns:w="http://schemas.microsoft.com/office/word/2003/wordml"><w:body><w:p><w:r><w:rPr><w:b/><w:sz w:val="48"/></w:rPr><w:t>${ex(activeQ)}</w:t></w:r></w:p><w:p/>${rows}</w:body></w:wordDocument>`;
+  const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([xml],{type:"application/msword"})); a.download=`${activeQ}.doc`; a.click();
+  showToast("Word document downloaded");
+}
+
+function ex(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+
+// ─── AI TRANSLATE ─────────────────────────────────────────────
+function saveAK(val) { ak=val.trim(); ls.set(AKK,ak); updateAKDot(); }
+
+function updateAKDot() {
+  const dot=document.getElementById("ak-dot"); const msg=document.getElementById("ak-msg");
+  if (!dot) return;
+  if (ak&&ak.startsWith("sk-ant")&&ak.length>20) { dot.style.background="#4caf50"; if(msg){msg.textContent="API key saved ✓";msg.style.color="var(--g)";} }
+  else if (ak) { dot.style.background="#EF9F27"; if(msg){msg.textContent="Key format looks off";msg.style.color="var(--a)";} }
+  else { dot.style.background="var(--border2)"; if(msg){msg.textContent="No key — auto-translate disabled";msg.style.color="var(--text3)";} }
+}
+
+function getLangs() { try { return JSON.parse(ls.get(LK))||{en:true,fr:false}; } catch(e) { return {en:true,fr:false}; } }
+function saveLangs() { ls.set(LK, JSON.stringify({en:document.getElementById("lang-en").checked, fr:document.getElementById("lang-fr").checked})); }
+
+async function callAI(prompt) {
+  if (!ak) { showToast("Add your API key in Settings"); goPage("set",document.getElementById("nav-set")); return null; }
+  const r = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","x-api-key":ak,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify({model:"claude-sonnet-4-5",max_tokens:600,messages:[{role:"user",content:prompt}]})});
+  const d = await r.json();
+  if (d.error) { showToast("API error: "+d.error.message); return null; }
+  let text = d.content?.[0]?.text||"";
+  // Strip surrounding quotes if present
+  text = text.trim();
+  if ((text.startsWith('"') && text.endsWith('"')) || (text.startsWith("'") && text.endsWith("'"))) {
+    text = text.slice(1,-1).trim();
+  }
+  return text;
+}
+
+function makeTransPrompt(arabic, lang) {
+  return `You are a scholar of classical Sufi poetry specializing in Sheikh Ahmadou Bamba Mbacké. Translate this Arabic verse faithfully into ${lang}, preserving its spiritual register and poetic quality. Ensure the translation has correct punctuation — add a period, comma, or appropriate mark at the end. Do not wrap your response in quotes.\nArabic: "${arabic}"\nRespond with ONLY the ${lang} translation.`;
+}
+
+async function aiVerse(id, lang) {
+  const v = getV(id); if (!v) return;
+  const tl = lang==="fr"?"French":"English";
+  const prompt = v.arabic ? makeTransPrompt(v.arabic, tl) : `You are a scholar of classical Sufi poetry specializing in Sheikh Ahmadou Bamba. Translate faithfully into ${tl}, with correct punctuation. Do not wrap in quotes.\nFrench source: "${v.french}"\nRespond with ONLY the ${tl} translation.`;
+  const btnEl = document.querySelector(`button[onclick="aiVerse('${id}','${lang}')"]`);
+  if (btnEl) { btnEl.innerHTML='<span class="spin"></span>'; btnEl.disabled=true; }
+  const result = await callAI(prompt);
+  if (result) {
+    if (lang==="fr") { const ta=document.getElementById("ft-"+id); if(ta) ta.value=result; }
+    else { const ta=document.getElementById("en-"+id); if(ta) ta.value=result; await api({action:"saveVerse",qasida:activeQ,id,ai_draft:result}); upLocal(id,{ai_draft:result}); }
+    showToast(`${tl} translation generated`);
+  }
+  if (btnEl) { btnEl.innerHTML="✦ Auto-translate"; btnEl.disabled=false; }
+}
+
+async function aiNew(lang) {
+  const ar = document.getElementById("nw-ar").value.trim();
+  const fs = document.getElementById("nw-fr").value.trim();
+  if (!ar&&!fs) { showToast("Paste Arabic or French source first"); return; }
+  const tl = lang==="fr"?"French":"English";
+  const prompt = ar ? makeTransPrompt(ar, tl) : `You are a scholar of classical Sufi poetry specializing in Sheikh Ahmadou Bamba. Translate faithfully into ${tl}, with correct punctuation. Do not wrap in quotes.\nFrench source: "${fs}"\nRespond with ONLY the ${tl} translation.`;
+  const btnEl = lang==="fr" ? document.querySelector('button[onclick="aiNew(\'fr\')"]') : document.querySelector('button[onclick="aiNew(\'en\')"]');
+  if (btnEl) { btnEl.innerHTML='<span class="spin"></span>'; btnEl.disabled=true; }
+  const result = await callAI(prompt);
+  if (result) {
+    if (lang==="fr") document.getElementById("nw-ft").value=result;
+    else document.getElementById("nw-en").value=result;
+    showToast(`${tl} translation generated`);
+  }
+  if (btnEl) { btnEl.innerHTML="✦ Auto-translate"; btnEl.disabled=false; }
+}
+
+// ─── INTRO / CONCLUSION ───────────────────────────────────────
+function renderIntroConclusion() {
+  if (!activeQ) return;
+  const meta = (allData[activeQ]||[]).find ? allData[activeQ].__meta || {} : {};
+  ["intro","conclusion"].forEach(type => {
+    const el = document.getElementById(`${type}-panel`);
+    if (!el) return;
+    const d = meta[type] || {arabic:"",translation:"",french_translation:""};
+    el.querySelector(`#${type}-ar`).value = d.arabic||"";
+    el.querySelector(`#${type}-en`).value = d.translation||"";
+    el.querySelector(`#${type}-fr`).value = d.french_translation||"";
+  });
+}
+
+function makeICPanel(type, label) {
+  return `<div style="background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radl);padding:14px;margin-bottom:10px" id="${type}-panel">
+    <div style="font-size:13px;font-weight:600;margin-bottom:10px;color:var(--text)">${label}</div>
+    <span class="lbl">Arabic source</span>
+    <textarea id="${type}-ar" class="ar-ta" style="margin-bottom:8px" placeholder="أدخل النص العربي..."></textarea>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+      <span class="lbl">English translation</span>
+      <button class="btn btn-p" style="font-size:11px;padding:3px 9px" onclick="aiIC('${type}','en')">✦ Auto-translate</button>
+    </div>
+    <textarea id="${type}-en" style="min-height:60px;margin-bottom:8px" placeholder="English..."></textarea>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+      <span class="lbl">French translation</span>
+      <button class="btn btn-b" style="font-size:11px;padding:3px 9px" onclick="aiIC('${type}','fr')">✦ Auto-translate</button>
+    </div>
+    <textarea id="${type}-fr" style="min-height:60px;margin-bottom:8px" placeholder="Traduction française..."></textarea>
+    <button class="btn btn-p" onclick="saveIC('${type}')">Save ${label}</button>
+  </div>`;
+}
+
+async function saveIC(type) {
+  const ar = document.getElementById(`${type}-ar`)?.value||"";
+  const en = document.getElementById(`${type}-en`)?.value||"";
+  const fr = document.getElementById(`${type}-fr`)?.value||"";
+  const specialId = `__${type}__`;
+  // Check if it already exists in allData
+  const existing = (allData[activeQ]||[]).find(v => String(v.id) === specialId);
+  let res;
+  if (existing) {
+    res = await api({action:"saveVerse", qasida:activeQ, id:specialId, arabic:ar, translation:en, french_translation:fr, status:"translated"});
+  } else {
+    res = await api({action:"addVerseWithId", qasida:activeQ, id:specialId, arabic:ar, translation:en, french_translation:fr, status:"translated"});
+    if (res?.success) {
+      if (!allData[activeQ]) allData[activeQ]=[];
+      allData[activeQ].push({id:specialId, arabic:ar, translation:en, french_translation:fr, status:"translated", assignee:"", sheikh_notes:"", comments:[]});
+    }
+  }
+  // Update local state
+  if (!existing) {
+    if (!allData[activeQ]) allData[activeQ]=[];
+    const idx = allData[activeQ].findIndex(v=>String(v.id)===specialId);
+    if (idx>=0) allData[activeQ][idx] = {...allData[activeQ][idx], arabic:ar, translation:en, french_translation:fr};
+  } else {
+    allData[activeQ] = allData[activeQ].map(v => String(v.id)===specialId ? {...v, arabic:ar, translation:en, french_translation:fr} : v);
+  }
+  showToast(`${type==="intro"?"Introduction":"Conclusion"} saved ✓`);
+}
+
+async function aiIC(type, lang) {
+  const ar = document.getElementById(`${type}-ar`)?.value.trim();
+  if (!ar) { showToast("Add Arabic text first"); return; }
+  const tl = lang==="fr"?"French":"English";
+  const btn = document.querySelector(`button[onclick="aiIC('${type}','${lang}')"]`);
+  if (btn) { btn.innerHTML='<span class="spin"></span>'; btn.disabled=true; }
+  const result = await callAI(makeTransPrompt(ar, tl));
+  if (result) { const ta=document.getElementById(`${type}-${lang}`); if(ta) ta.value=result; showToast(`${tl} generated`); }
+  if (btn) { btn.innerHTML="✦ Auto-translate"; btn.disabled=false; }
+}
+
+// ─── FILE IMPORT ──────────────────────────────────────────────
+let splitFileMode = "line";
+let parsedFile = [];
+
+function setSplitFile(m, el) {
+  splitFileMode = m;
+  document.querySelectorAll("#imp-file .mpill").forEach(p=>p.classList.remove("on")); el.classList.add("on");
+}
+
+async function handleFileUpload(input) {
+  const file = input.files[0]; if (!file) return;
+  const status = document.getElementById("file-status");
+  status.textContent = "Reading file...";
+  try {
+    const name = file.name.toLowerCase();
+    if (name.endsWith(".pdf")) await extractPDF(file);
+    else if (name.endsWith(".docx") || name.endsWith(".doc")) await extractDocx(file);
+    else if (name.endsWith(".txt")) {
+      const text = await file.text();
+      document.getElementById("file-text").value = text.trim();
+    }
+    status.textContent = `Loaded: ${file.name}`;
+  } catch(e) {
+    status.textContent = "Could not read file — try pasting text manually";
+  }
+}
+
+async function extractPDF(file) {
+  if (!window.pdfjsLib) {
+    await new Promise((res,rej)=>{ const s=document.createElement("script"); s.src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"; s.onload=res; s.onerror=rej; document.head.appendChild(s); });
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+  }
+  const pdf = await window.pdfjsLib.getDocument({data: await file.arrayBuffer()}).promise;
+  let text = "";
+  for (let i=1; i<=pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    text += content.items.map(x=>x.str).join(" ") + "\n";
+  }
+  document.getElementById("file-text").value = text.trim();
+}
+
+async function extractDocx(file) {
+  if (!window.mammoth) {
+    await new Promise((res,rej)=>{ const s=document.createElement("script"); s.src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"; s.onload=res; s.onerror=rej; document.head.appendChild(s); });
+  }
+  const result = await window.mammoth.extractRawText({arrayBuffer: await file.arrayBuffer()});
+  document.getElementById("file-text").value = result.value.trim();
+}
+
+function parseFile() {
+  const text = document.getElementById("file-text").value.trim();
+  if (!text) { showToast("No text to parse"); return; }
+  parsedFile = splitFileMode==="blank"
+    ? text.split(/\n\s*\n/).map(v=>v.trim()).filter(v=>v)
+    : text.split("\n").map(v=>v.trim()).filter(v=>v);
+  if (!parsedFile.length) { showToast("No verses found"); return; }
+  document.getElementById("file-count").textContent = `${parsedFile.length} verse${parsedFile.length!==1?"s":""} found`;
+  fillQSel("imp-q-file");
+  document.getElementById("file-preview").style.display="";
+  document.getElementById("file-preview-list").innerHTML = parsedFile.map((v,i)=>`
+    <div style="background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rad);padding:10px 12px;margin-bottom:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:11px;color:var(--text3);font-weight:600">Verse ${i+1}</span>
+        <button class="btn btn-r" style="font-size:11px;padding:2px 8px" onclick="rmFile(${i})">Remove</button>
+      </div>
+      <textarea id="fv-${i}" style="direction:rtl;text-align:right;font-family:'Times New Roman',serif;font-size:15px;min-height:50px;margin-bottom:6px">${v}</textarea>
+      <div style="font-size:10px;font-weight:600;color:var(--text3);margin-bottom:4px">ENGLISH</div>
+      <textarea id="fv-en-${i}" style="min-height:50px;margin-bottom:6px;font-style:italic" placeholder="English..."></textarea>
+      <div style="font-size:10px;font-weight:600;color:var(--text3);margin-bottom:4px">FRENCH</div>
+      <textarea id="fv-fr-${i}" style="min-height:50px;font-style:italic" placeholder="Français..."></textarea>
+    </div>`).join("");
+}
+
+function rmFile(i) { parsedFile.splice(i,1); parseFile(); }
+
+async function translatePreviewFile() {
+  if (!ak) { showToast("Add API key in Settings"); return; }
+  const btn = document.getElementById("btn-trans-file"); btn.disabled=true;
+  for (let i=0; i<parsedFile.length; i++) {
+    const ar = document.getElementById("fv-"+i)?.value.trim(); if (!ar) continue;
+    btn.innerHTML=`<span class="spin"></span> ${i+1}/${parsedFile.length}`;
+    const [en,fr] = await Promise.all([callAI(makeTransPrompt(ar,"English")), callAI(makeTransPrompt(ar,"French"))]);
+    const eEl=document.getElementById("fv-en-"+i); const fEl=document.getElementById("fv-fr-"+i);
+    if (en&&eEl) eEl.value=en; if (fr&&fEl) fEl.value=fr;
+  }
+  btn.disabled=false; btn.innerHTML="✦ Translate all"; showToast("Done — review and import");
+}
+
+async function doImportFile() {
+  const q = document.getElementById("imp-q-file").value; if (!q) return;
+  const verses = parsedFile.map((v,i)=>({
+    arabic:(document.getElementById("fv-"+i)?.value||v).trim(),
+    en:document.getElementById("fv-en-"+i)?.value.trim()||"",
+    fr:document.getElementById("fv-fr-"+i)?.value.trim()||""
+  })).filter(v=>v.arabic);
+  if (!verses.length) return;
+  const btn=document.querySelector("button[onclick='doImportFile()']"); if(btn){btn.disabled=true;btn.textContent="Importing...";}
+  let count=0;
+  for (const v of verses) {
+    const status=(v.en||v.fr)?"translated":"untranslated";
+    const res=await api({action:"addVerse",qasida:q,arabic:v.arabic,french:"",translation:v.en,french_translation:v.fr,status});
+    if (res?.success) { if(!allData[q])allData[q]=[]; allData[q].push({id:res.id,arabic:v.arabic,french:"",ai_draft:"",translation:v.en,french_translation:v.fr,status,assignee:"",sheikh_notes:"",comments:[]}); count++; }
+  }
+  if(btn){btn.disabled=false;btn.textContent="Import all";}
+  renderSidebar(); showToast(`${count} verse${count!==1?"s":""} imported`);
+  document.getElementById("file-preview").style.display="none";
+  document.getElementById("file-text").value=""; document.getElementById("file-count").textContent="";
+}
+
+// ─── IMPORT ───────────────────────────────────────────────────
+function setImpMode(m,el) {
+  impMode=m;
+  document.querySelectorAll("#page-imp .mpill").forEach(p=>p.classList.remove("on")); el.classList.add("on");
+  document.getElementById("imp-ar").style.display=m==="ar"?"":"none";
+  document.getElementById("imp-both").style.display=m==="both"?"":"none";
+  document.getElementById("imp-file").style.display=m==="file"?"":"none";
+}
+
+function setSplit(m,el) {
+  splitMode=m;
+  document.querySelectorAll("#imp-ar .mpill").forEach(p=>p.classList.remove("on")); el.classList.add("on");
+}
+
+function splitText(text,mode) {
+  if (mode==="blank") return text.split(/\n\s*\n/).map(v=>v.trim()).filter(v=>v);
+  if (mode==="num") return text.split(/\n(?=\d+[\.\-\)]\s)/).map(v=>v.replace(/^\d+[\.\-\)]\s*/,"").trim()).filter(v=>v);
+  return text.split("\n").map(v=>v.trim()).filter(v=>v);
+}
+
+function fillQSel(id) {
+  const sel = document.getElementById(id); if (!sel) return;
+  sel.innerHTML = qasidas.map(q=>`<option value="${q}">${q}</option>`).join("");
+  if (activeQ) sel.value=activeQ;
+}
+
+function parseAr() {
+  const text = document.getElementById("imp-ar-text").value.trim();
+  if (!text) { showToast("Paste some Arabic text first"); return; }
+  parsedAr = splitText(text, splitMode);
+  if (!parsedAr.length) { showToast("No verses found"); return; }
+  document.getElementById("ar-count").textContent = `${parsedAr.length} verse${parsedAr.length!==1?"s":""} found`;
+  fillQSel("imp-q-ar");
+  document.getElementById("ar-preview").style.display="";
+  document.getElementById("ar-preview-list").innerHTML = parsedAr.map((v,i)=>`
+    <div style="background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rad);padding:10px 12px;margin-bottom:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:11px;color:var(--text3);font-weight:600">Verse ${i+1}</span>
+        <button class="btn btn-r" style="font-size:11px;padding:2px 8px" onclick="rmAr(${i})">Remove</button>
+      </div>
+      <textarea id="pv-${i}" style="direction:rtl;text-align:right;font-family:'Times New Roman',serif;font-size:15px;min-height:50px;margin-bottom:6px">${v}</textarea>
+      <div style="font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">English translation</div>
+      <textarea id="pv-en-${i}" style="min-height:50px;margin-bottom:6px;font-style:italic" placeholder="English translation..."></textarea>
+      <div style="font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">French translation</div>
+      <textarea id="pv-fr-${i}" style="min-height:50px;font-style:italic" placeholder="Traduction française..."></textarea>
+    </div>`).join("");
+}
+
+function rmAr(i) { parsedAr.splice(i,1); document.getElementById("imp-ar-text").value=parsedAr.join("\n"); parseAr(); }
+
+async function translatePreviewAr() {
+  if (!ak) { showToast("Add your API key in Settings first"); goPage("set",document.getElementById("nav-set")); return; }
+  const btn = document.getElementById("btn-trans-ar");
+  btn.disabled=true;
+  for (let i=0; i<parsedAr.length; i++) {
+    const arabic = document.getElementById("pv-"+i)?.value.trim();
+    if (!arabic) continue;
+    btn.innerHTML=`<span class="spin"></span> ${i+1}/${parsedAr.length}`;
+    const src = `Arabic verse by Sheikh Ahmadou Bamba: "${arabic}"`;
+    const [en, fr] = await Promise.all([
+      callAI(`You are a scholar of classical Sufi poetry specializing in Sheikh Ahmadou Bamba. Translate faithfully into English, preserving spiritual register.\n${src}\nRespond with ONLY the English translation.`),
+      callAI(`You are a scholar of classical Sufi poetry specializing in Sheikh Ahmadou Bamba. Translate faithfully into French, preserving spiritual register.\n${src}\nRespond with ONLY the French translation.`)
+    ]);
+    const enEl = document.getElementById("pv-en-"+i);
+    const frEl = document.getElementById("pv-fr-"+i);
+    if (en && enEl) enEl.value = en;
+    if (fr && frEl) frEl.value = fr;
+  }
+  btn.disabled=false; btn.innerHTML="✦ Translate all";
+  showToast("Done — review translations then import");
+}
+
+async function doImportAr() {
+  const q = document.getElementById("imp-q-ar").value; if (!q) return;
+  const verses = parsedAr.map((v,i)=>({
+    arabic: (document.getElementById("pv-"+i)?.value||v).trim(),
+    en: document.getElementById("pv-en-"+i)?.value.trim()||"",
+    fr: document.getElementById("pv-fr-"+i)?.value.trim()||""
+  })).filter(v=>v.arabic);
+  if (!verses.length) return;
+  const btn = document.querySelector("button[onclick='doImportAr()']"); if(btn){btn.disabled=true;btn.textContent="Importing...";}
+  let count=0;
+  for (const v of verses) {
+    const status = (v.en||v.fr) ? "translated" : "untranslated";
+    const res = await api({action:"addVerse",qasida:q,arabic:v.arabic,french:"",translation:v.en,french_translation:v.fr,status});
+    if (res?.success) { if(!allData[q])allData[q]=[]; allData[q].push({id:res.id,arabic:v.arabic,french:"",ai_draft:"",translation:v.en,french_translation:v.fr,status,assignee:"",sheikh_notes:"",comments:[]}); count++; }
+  }
+  if(btn){btn.disabled=false;btn.textContent="Import all";}
+  renderSidebar(); showToast(`${count} verse${count!==1?"s":""} imported into ${q}`);
+  document.getElementById("ar-preview").style.display="none";
+  document.getElementById("imp-ar-text").value="";
+  document.getElementById("ar-count").textContent="";
+}
+
+async function batchTranslate(q, langs) {
+  if (!ak) return;
+  const verses = allData[q] || [];
+  let done = 0;
+  for (const v of verses) {
+    if (!v.arabic && !v.french) continue;
+    const src = v.arabic ? `Arabic: "${v.arabic}"` : `French source: "${v.french}"`;
+    let en = v.translation || "";
+    let fr = v.french_translation || "";
+    if (langs.en && !en) {
+      const r = await callAI(`You are a scholar of classical Sufi poetry specializing in Sheikh Ahmadou Bamba. Translate faithfully into English, preserving spiritual register.\n${src}\nRespond with ONLY the English translation.`);
+      if (r) en = r;
+    }
+    if (langs.fr && !fr) {
+      const r = await callAI(`You are a scholar of classical Sufi poetry specializing in Sheikh Ahmadou Bamba. Translate faithfully into French, preserving spiritual register.\n${src}\nRespond with ONLY the French translation.`);
+      if (r) fr = r;
+    }
+    const status = (en||fr) ? "translated" : v.status;
+    await api({action:"saveVerse",qasida:q,id:v.id,translation:en,french_translation:fr,status});
+    allData[q] = allData[q].map(x => String(x.id)===String(v.id) ? {...x,translation:en,french_translation:fr,status} : x);
+    done++;
+    showToast(`Translating... ${done}/${verses.length}`);
+  }
+  renderSidebar();
+  showToast(`Done — ${done} verse${done!==1?"s":""} translated`);
+}
+
+function parseBoth() {
+  const text = document.getElementById("imp-both-text").value.trim();
+  if (!text) { showToast("Paste text first"); return; }
+  const lines = text.split("\n").map(l=>l.trim()).filter(l=>l);
+  parsedPairs = [];
+  for (let i=0;i<lines.length;i+=2) parsedPairs.push({arabic:lines[i]||"",english:lines[i+1]||""});
+  if (!parsedPairs.length) { showToast("No pairs found"); return; }
+  document.getElementById("both-count").textContent = `${parsedPairs.length} pair${parsedPairs.length!==1?"s":""} found`;
+  fillQSel("imp-q-both");
+  renderBothPreview();
+  document.getElementById("both-preview").style.display="";
+}
+
+function renderBothPreview() {
+  document.getElementById("both-preview-list").innerHTML = parsedPairs.map((p,i)=>`
+    <div style="background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rad);padding:10px 12px;margin-bottom:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:11px;color:var(--text3);font-weight:600">Verse ${i+1}</span>
+        <button class="btn btn-r" style="font-size:11px;padding:2px 8px" onclick="rmPair(${i})">Remove</button>
+      </div>
+      <textarea id="pb-ar-${i}" style="direction:rtl;text-align:right;font-family:'Times New Roman',serif;font-size:15px;min-height:50px;margin-bottom:6px">${p.arabic}</textarea>
+      <div style="font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">English</div>
+      <textarea id="pb-en-${i}" style="min-height:50px;font-style:italic;margin-bottom:6px">${p.english}</textarea>
+      <div style="font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">French</div>
+      <textarea id="pb-fr-${i}" style="min-height:50px;font-style:italic" placeholder="Traduction française..."></textarea>
+    </div>`).join("");
+}
+
+function rmPair(i) { parsedPairs.splice(i,1); document.getElementById("both-count").textContent=`${parsedPairs.length} pair${parsedPairs.length!==1?"s":""} found`; renderBothPreview(); }
+
+async function translatePreviewBoth() {
+  if (!ak) { showToast("Add your API key in Settings first"); goPage("set",document.getElementById("nav-set")); return; }
+  const btn = document.getElementById("btn-trans-both");
+  btn.disabled=true;
+  for (let i=0; i<parsedPairs.length; i++) {
+    const arabic = document.getElementById("pb-ar-"+i)?.value.trim();
+    if (!arabic) continue;
+    btn.innerHTML=`<span class="spin"></span> ${i+1}/${parsedPairs.length}`;
+    const src = `Arabic verse by Sheikh Ahmadou Bamba: "${arabic}"`;
+    const fr = await callAI(`You are a scholar of classical Sufi poetry specializing in Sheikh Ahmadou Bamba. Translate faithfully into French, preserving spiritual register.\n${src}\nRespond with ONLY the French translation.`);
+    const frEl = document.getElementById("pb-fr-"+i);
+    if (fr && frEl) frEl.value = fr;
+  }
+  btn.disabled=false; btn.innerHTML="✦ Translate to French";
+  showToast("Done — review then import");
+}
+
+async function doImportBoth() {
+  const q = document.getElementById("imp-q-both").value; if (!q) return;
+  const pairs = parsedPairs.map((p,i)=>({
+    arabic: (document.getElementById("pb-ar-"+i)?.value||p.arabic).trim(),
+    english: (document.getElementById("pb-en-"+i)?.value||p.english).trim(),
+    french: document.getElementById("pb-fr-"+i)?.value.trim()||""
+  })).filter(p=>p.arabic||p.english);
+  if (!pairs.length) return;
+  const btn = document.querySelector("button[onclick='doImportBoth()']"); if(btn){btn.disabled=true;btn.textContent="Importing...";}
+  let count=0;
+  for (const pair of pairs) {
+    const status = (pair.english||pair.french)?"translated":"untranslated";
+    const res = await api({action:"addVerse",qasida:q,arabic:pair.arabic,french:"",translation:pair.english,french_translation:pair.french,status});
+    if (res?.success) { if(!allData[q])allData[q]=[]; allData[q].push({id:res.id,arabic:pair.arabic,french:"",ai_draft:"",translation:pair.english,french_translation:pair.french,status,assignee:me,sheikh_notes:"",comments:[]}); count++; }
+  }
+  if(btn){btn.disabled=false;btn.textContent="Import all";}
+  renderSidebar(); showToast(`${count} verse${count!==1?"s":""} imported into ${q}`);
+  document.getElementById("both-preview").style.display="none";
+  document.getElementById("imp-both-text").value="";
+  document.getElementById("both-count").textContent="";
+}
+
+// ─── GLOSSARY ─────────────────────────────────────────────────
+function saveGlossary() { ls.set(GK,JSON.stringify(glossary)); }
+
+function renderAlphaBar() {
+  const used = new Set(glossary.map(e=>(e.english||"").charAt(0).toUpperCase()).filter(Boolean));
+  document.getElementById("abar").innerHTML =
+    `<div class="ab${gLetter===''?" on":""}" onclick="setAL('')">All</div>` +
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map(l=>`<div class="ab${gLetter===l?" on":""}${used.has(l)?"":" "}" onclick="setAL('${l}')">${l}</div>`).join("");
+}
+
+function setAL(l) { gLetter=l; renderAlphaBar(); renderGlossary(); }
+function gSearch(q) { gFilter=q.toLowerCase(); renderGlossary(); }
+
+function renderGlossary() {
+  let entries = [...glossary];
+  if (gFilter) entries=entries.filter(e=>e.term?.toLowerCase().includes(gFilter)||e.english?.toLowerCase().includes(gFilter)||e.notes?.toLowerCase().includes(gFilter));
+  if (gLetter) entries=entries.filter(e=>(e.english||"").charAt(0).toUpperCase()===gLetter);
+  entries.sort((a,b)=>(a.english||"").localeCompare(b.english||""));
+  const el = document.getElementById("glist");
+  if (!entries.length) { el.innerHTML='<div style="font-size:13px;color:var(--text3);padding:1rem 0">No terms yet. Add your first term below.</div>'; return; }
+  const groups = {};
+  entries.forEach(e=>{ const l=(e.english||"?").charAt(0).toUpperCase(); if(!groups[l])groups[l]=[]; groups[l].push(e); });
+  el.innerHTML = Object.keys(groups).sort().map(l=>`<div class="ag"><div class="ag-h">${l}</div>${groups[l].map(e=>`
+    <div class="gentry">
+      <div class="gterm">${e.term}</div>
+      <div class="gbody"><div class="gen">${e.english}</div>${e.notes?`<div class="gnotes">${e.notes}</div>`:""}</div>
+      <button class="btn btn-r" style="font-size:11px;padding:3px 8px;opacity:.6" onclick="rmGEntry('${e.id}')">Delete</button>
+    </div>`).join("")}</div>`).join("");
+}
+
+function toggleAEF() { const f=document.getElementById("aef"); f.style.display=f.style.display==="none"?"":"none"; }
+
+function addGEntry() {
+  const term=document.getElementById("g-term").value.trim();
+  const english=document.getElementById("g-en").value.trim();
+  const notes=document.getElementById("g-notes").value.trim();
+  if (!term||!english) { showToast("Please fill in both term and English equivalent"); return; }
+  glossary.push({id:Date.now().toString(),term,english,notes});
+  saveGlossary();
+  ["g-term","g-en","g-notes"].forEach(id=>{ const el=document.getElementById(id); if(el)el.value=""; });
+  document.getElementById("aef").style.display="none";
+  renderAlphaBar(); renderGlossary(); showToast("Term added");
+}
+
+function rmGEntry(id) { if(!confirm("Delete this term?"))return; glossary=glossary.filter(e=>e.id!==id); saveGlossary(); renderAlphaBar(); renderGlossary(); showToast("Deleted"); }
+
+// ─── HELPERS ──────────────────────────────────────────────────
+function showLoad(b) { document.getElementById("loading").style.display=b?"flex":"none"; }
+function showToast(msg) { const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("on"); setTimeout(()=>t.classList.remove("on"),2500); }
+</script>
+</body>
+</html>
