@@ -433,19 +433,21 @@ let gLetter = "";
 
 // ─── INIT ─────────────────────────────────────────────────────
 window.onload = () => {
-  if (ak) { document.getElementById("ak-input").value = ak; updateAKDot(); }
+  if (ak) { document.getElementById("ak-input").value = ak; }
+  updateAKDot();
   if (scriptUrl) {
     document.getElementById("url-set").value = scriptUrl;
     document.getElementById("url-input").value = scriptUrl;
-    hideCpanel();
-    loadData();
   }
   const langs = getLangs();
   document.getElementById("lang-en").checked = langs.en;
   document.getElementById("lang-fr").checked = langs.fr;
   try { glossary = JSON.parse(ls.get(GK)) || []; } catch(e) { glossary = []; }
   renderAlphaBar(); renderGlossary();
-  if (scriptUrl) { hideCpanel(); loadData(); }
+  if (scriptUrl) {
+    hideCpanel();
+    loadData();
+  }
 };
 
 // ─── NAVIGATION ───────────────────────────────────────────────
@@ -499,11 +501,9 @@ function api(params) {
     };
     const timer = setTimeout(() => {
       finish(null);
-      showToast("Timed out — check script URL and deployment settings");
+      showToast("Connection timed out — please refresh the page");
       showLoad(false);
-      document.getElementById("cpanel").style.display = "";
-      document.getElementById("ws-body").style.display = "none";
-    }, 10000);
+    }, 12000);
     window[cb] = (data) => finish(data);
     const s = document.createElement("script");
     s.id = cb; s.src = url;
