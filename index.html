@@ -413,7 +413,7 @@ const LK = "bamba_langs_v2";
 
 const ls = { get: k => { try { return localStorage.getItem(k)||""; } catch(e) { return ""; } }, set: (k,v) => { try { localStorage.setItem(k,v); } catch(e){} } };
 
-let scriptUrl = ls.get(SK);
+let scriptUrl = ls.get(SK) || "https://script.google.com/macros/s/AKfycbwPSr9qJhbSCeoA2M2WH2IScIyIytEYs6QrYgrLVclrV78Uo1A0gPfSJ1d04Jb9Bz-w/exec";
 let ak = ls.get(AKK);
 let allData = {};
 let qasidas = [];
@@ -434,7 +434,12 @@ let gLetter = "";
 // ─── INIT ─────────────────────────────────────────────────────
 window.onload = () => {
   if (ak) { document.getElementById("ak-input").value = ak; updateAKDot(); }
-  if (scriptUrl) { document.getElementById("url-set").value = scriptUrl; document.getElementById("url-input").value = scriptUrl; }
+  if (scriptUrl) {
+    document.getElementById("url-set").value = scriptUrl;
+    document.getElementById("url-input").value = scriptUrl;
+    hideCpanel();
+    loadData();
+  }
   const langs = getLangs();
   document.getElementById("lang-en").checked = langs.en;
   document.getElementById("lang-fr").checked = langs.fr;
